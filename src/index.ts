@@ -58,36 +58,35 @@ export class NutsAPIServer<Schema extends ApiSchemaBase> {
 
   private async handleRequest(req: IncomingMessage, res: ServerResponse<IncomingMessage>) {
 
+    const origin = req.headers.origin;
+    const option = this.corsOptions.find(v => v.origin === origin);
+
+    const cors = origin !== undefined && option !== undefined ? {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Headers': option.headers.join(', '),
+      'Access-Control-Allow-Methods': option.methods.join(', '),
+      ...(option.credential ? { 'Access-Control-Allow-Credentials': 'true' } : {}),
+    } : {};
+
     if(req.method === 'OPTIONS') {
-      const origin = req.headers.origin;
-      if(origin === undefined) {
+      if(origin === undefined || option === undefined) {
         res.writeHead(204);
         res.end();
         return;
       }
-      const option = this.corsOptions.find(v => v.origin === origin);
-      if(option !== undefined) {
-        res.writeHead(204, {
-          'Access-Control-Allow-Origin': origin,
-          'Access-Control-Allow-Headers': option.headers.join(', '),
-          'Access-Control-Allow-Methods': option.methods.join(', '),
-          ...(option.credential ? { 'Access-Control-Allow-Credentials': 'true' } : {}),
-        });
-      } else {
-        res.writeHead(204);
-      }
+      res.writeHead(204, cors);
       res.end();
       return;
     }
 
-    if(req.url === undefined) return this.responseError(res, 500);
+    if(req.url === undefined) return this.responseError(res, 500, cors);
 
     const url = parse(req.url, true);
     if(req.method === 'GET' || (req.headers['content-type'] !== 'application/json' && req.method === 'DELETE')) {
-      return this.handleEndPoint(req.method, url.pathname ?? '/', url.query, req, res);
+      return this.handleEndPoint(req.method, url.pathname ?? '/', url.query, req, res, cors);
     }
 
-    if(req.headers['content-type'] !== 'application/json') return this.responseError(res, 400);
+    if(req.headers['content-type'] !== 'application/json') return this.responseError(res, 400, cors);
 
     try {
       const body: Uint8Array[] = [];
@@ -98,45 +97,46 @@ export class NutsAPIServer<Schema extends ApiSchemaBase> {
       }).on('end', () => {
         const receivedBody = Buffer.concat(body).toString();
         const payload = JSON.parse(receivedBody);
-        return this.handleEndPoint(req.method ?? '', url.pathname ?? '/', payload, req, res);
+        return this.handleEndPoint(req.method ?? '', url.pathname ?? '/', payload, req, res, cors);
       });
     } catch {
-      return this.responseError(res, 400);
+      return this.responseError(res, 400, cors);
     }
   }
 
-  private async handleEndPoint(method: string, endpoint: string, payload: unknown, req: IncomingMessage, res: ServerResponse<IncomingMessage>) {
+  private async handleEndPoint(method: string, endpoint: string, payload: unknown, req: IncomingMessage, res: ServerResponse<IncomingMessage>, cors: Record<string, string>) {
     const handler = this.listeningHanders.find(v => v.endpoint === endpoint && v.method === method);
     const schema = this.endpoints.find(v => v.endpoint === endpoint && v.method === method);
 
     if(handler === undefined || schema === undefined) {  
-      return this.responseError(res, schema !== undefined ? 501 : 404);
+      return this.responseError(res, schema !== undefined ? 501 : 404, cors);
     }
 
     const parsedPayload = schema.type.request.safeParse(payload);
-    if(!parsedPayload.success) return this.responseError(res, 400);
+    if(!parsedPayload.success) return this.responseError(res, 400, cors);
 
     
     const nutsRequest = new NutsRequest<unknown, never>(parsedPayload.data, req);
     await handler.worker(nutsRequest);
 
     const response = NutsRequest.UNPACK(nutsRequest);
-    if(response === null) return this.responseError(res, 500);
+    if(response === null) return this.responseError(res, 500, cors);
     try{
       const content = JSON.stringify(response.payload);
       res.writeHead(response.code, {
         'Content-Type': 'application/json',
         ...(response.cookie === null ? {} : { 'Set-Cookie': response.cookie }),
+        ...cors,
       });
       res.end(content, 'utf-8');
       return;
     } catch {
-      return this.responseError(res, 500);
+      return this.responseError(res, 500, cors);
     }
   }
 
-  private async responseError(res: ServerResponse<IncomingMessage>, code: 400 | 404 | 500 | 501) {
-    res.writeHead(code);
+  private async responseError(res: ServerResponse<IncomingMessage>, code: 400 | 404 | 500 | 501, cors: Record<string, string>) {
+    res.writeHead(code, cors);
     switch(code) {
     case 400:
       res.end(this.messages.badRequest, 'utf-8');

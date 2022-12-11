@@ -20,9 +20,8 @@ export type WorkerType<
     payload: NutsRequest<
       ExtractSchema<Schema, T, U>['request']['_output'],
       {
-        [S in (keyof ExtractSchema<Schema, T, U>['response']) & number]: {
-          S: ExtractSchema<Schema, T, U>['response'][S]['_output'] 
-        }
+        [S in (keyof ExtractSchema<Schema, T, U>['response']) & number]:
+          ExtractSchema<Schema, T, U>['response'][S]['_output'] 
       }
     >
   ) => Promise<void>;
