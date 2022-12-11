@@ -3,36 +3,9 @@ import { HTTP_REQUEST_METHODS } from '@nutsapi/types';
 import type { IncomingMessage, Server, ServerResponse } from 'http';
 import { createServer } from 'http';
 import { parse } from 'url';
+import type { Handler, AllEndPoint, AllMethod, WorkerType} from './handler';
+import { NutsAPIHandler } from './handler';
 import { NutsRequest } from './worker';
-
-type AllEndPoint<Schema extends ApiSchemaBase> = (keyof Schema & string);
-type AllMethod<Schema extends ApiSchemaBase, T extends AllEndPoint<Schema>> = (keyof Schema[T] & HttpRequestMethod);
-
-
-type ExtractSchema<
-  Schema extends ApiSchemaBase,
-  T extends AllEndPoint<Schema> = AllEndPoint<Schema>,
-  U extends AllMethod<Schema, T> = AllMethod<Schema, T>,
-> = 
-  Schema[T][U] extends { request: ApiRequestBase, response: ApiResponseBase } ? Schema[T][U] : never;
-
-type WorkerType<
-  Schema extends ApiSchemaBase,
-  T extends AllEndPoint<Schema>,
-  U extends AllMethod<Schema, T>,
-> = 
-  (payload: NutsRequest<ExtractSchema<Schema, T, U>['request'], ExtractSchema<Schema, T, U>['response']>) => Promise<void>;
-
-
-type Handler<
-  Schema extends ApiSchemaBase,
-  T extends AllEndPoint<Schema> = AllEndPoint<Schema>,
-  U extends AllMethod<Schema, T> = AllMethod<Schema, T>,
-> = {
-  endpoint: T,
-  method: U,
-  worker: WorkerType<Schema, T, U>,
-}
 
 interface CorsOption {
   origin: string,
@@ -54,7 +27,9 @@ export class NutsAPIServer<Schema extends ApiSchemaBase> {
     notImplemented: '501 Not Implemented',
   };
 
+  private listeningHanders: Handler<Schema>[] = [];
   private handlers: Handler<Schema>[] = [];
+  private extHandlers: NutsAPIHandler<Schema>[] = [];
   private corsOptions: CorsOption[] = [];
 
   private server: Server | undefined = undefined;
@@ -62,6 +37,10 @@ export class NutsAPIServer<Schema extends ApiSchemaBase> {
   public handle<T extends AllEndPoint<Schema>, U extends AllMethod<Schema, T>>
   (endpoint: T, method: U, handler: WorkerType<Schema, T, U>) {
     this.handlers.push({ endpoint, method, worker: handler });
+  }
+
+  public withHandlers(handler: NutsAPIHandler<Schema>) {
+    this.extHandlers.push(handler);
   }
 
   public cors(option: CorsOption | string) {
@@ -127,7 +106,7 @@ export class NutsAPIServer<Schema extends ApiSchemaBase> {
   }
 
   private async handleEndPoint(method: string, endpoint: string, payload: unknown, req: IncomingMessage, res: ServerResponse<IncomingMessage>) {
-    const handler = this.handlers.find(v => v.endpoint === endpoint && v.method === method);
+    const handler = this.listeningHanders.find(v => v.endpoint === endpoint && v.method === method);
     const schema = this.endpoints.find(v => v.endpoint === endpoint && v.method === method);
 
     if(handler === undefined || schema === undefined) {  
@@ -174,6 +153,7 @@ export class NutsAPIServer<Schema extends ApiSchemaBase> {
   }
 
   public listen(port: number) {
+    this.listeningHanders = [this.handlers, ...this.extHandlers.map(v => NutsAPIHandler.UNPACK(v))].flat();
     this.server = createServer((req, res) => {
       void this.handleRequest(req, res);
     });
