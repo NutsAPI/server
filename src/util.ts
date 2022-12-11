@@ -8,3 +8,4 @@ export class CachedProperty<T> {
     return this.cached.data;
   }
 }
+

@@ -1,6 +1,5 @@
 import type { ApiRequestBase, ApiResponseBase } from '@nutsapi/types';
 import type { IncomingMessage } from 'http';
-import type { z } from 'zod';
 import type { HttpCookie, HttpSetCookie } from './cookie';
 import { CachedProperty } from './util';
 
@@ -14,12 +13,12 @@ export class NutsRequest<T extends ApiRequestBase, U extends ApiResponseBase> {
 
   private response: {
     code: number;
-    payload: U[number]
+    payload: U[number]['_output']
   } | null = null;
   private cookie: string[] = [];
 
   constructor(
-    public body: z.infer<T>,
+    public body: T['_output'],
     public raw: IncomingMessage,
   ){
     this.properties = {
@@ -67,7 +66,7 @@ export class NutsRequest<T extends ApiRequestBase, U extends ApiResponseBase> {
   }
 
 
-  reply<Code extends number & (keyof U)>(code: Code, payload: z.infer<U[Code]>) {
+  reply<Code extends number & (keyof U)>(code: Code, payload: U[Code]['_output']) {
     this.response = { code, payload };
   }
 
