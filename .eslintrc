@@ -1,0 +1,4 @@
+{
+  "root": true,
+  "extends": "@nutsapi/eslint-config-ts"
+}
