@@ -1,4 +1,3 @@
-
 import { generateDtsBundle } from 'dts-bundle-generator';
 import { build } from 'esbuild';
 import { rm, writeFile } from 'fs/promises';

@@ -201,9 +201,9 @@
     "@typescript-eslint/parser" "^5.38.1"
 
 "@nutsapi/types@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@nutsapi/types/-/types-1.1.0.tgz#4cbc23c35d39c85283ab769f1cd2d31d46dcb8e0"
-  integrity sha512-PXPYFva5hhztiz9Rm+HSNkM++SmraJ6J7xg0qGuE6m+UglZ7XK2jEoEGyMbXFAJs3xabt7mBlJ+BJYqu6dEZxQ==
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@nutsapi/types/-/types-1.2.0.tgz#5a94158b32731d4733d3670f5ac298d2202f597f"
+  integrity sha512-DCSD2xcmd6QqDWx9LR6SDyI1yGsFyaqM0LBz2B2CbxE7XxSYKiJH0e/yOEKdCP2S9WAXrd/RHmoJbInDaFJG3A==
 
 "@tsconfig/node10@^1.0.7":
   version "1.0.9"
