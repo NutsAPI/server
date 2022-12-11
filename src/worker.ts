@@ -1,5 +1,6 @@
 import type { IncomingMessage } from 'http';
 import type { HttpCookie, HttpSetCookie } from './cookie';
+import { getRemoteAddress } from './remoteAddress';
 import { CachedProperty } from './util';
 
 
@@ -22,11 +23,7 @@ export class NutsRequest<T, U extends Record<number, unknown>> {
   ){
     this.properties = {
       userAgent: new CachedProperty(() => this.raw.headers['user-agent']),
-      remoteAddress: new CachedProperty(() => {
-        const forwardedFor = this.raw.headers['x-forwarded-for'];
-        if(forwardedFor === undefined) return this.raw.socket.remoteAddress;
-        return (Array.isArray(forwardedFor) ? forwardedFor : forwardedFor.split(','))[0];
-      }),
+      remoteAddress: new CachedProperty(() => getRemoteAddress(this.raw.headers, this.raw.socket.remoteAddress)),
       cookie: new CachedProperty(() => {
         if(this.raw.headers.cookie === undefined) return [];
         return this.raw.headers.cookie.split('; ')
