@@ -116,7 +116,8 @@ export class NutsAPIServer<Schema extends ApiSchemaBase> {
     const parsedPayload = schema.type.request.safeParse(payload);
     if(!parsedPayload.success) return this.responseError(res, 400);
 
-    const nutsRequest = new NutsRequest<ApiRequestBase, ApiResponseBase>(parsedPayload.data, req);
+    
+    const nutsRequest = new NutsRequest<unknown, never>(parsedPayload.data, req);
     await handler.worker(nutsRequest);
 
     const response = NutsRequest.UNPACK(nutsRequest);
@@ -164,3 +165,6 @@ export class NutsAPIServer<Schema extends ApiSchemaBase> {
     this.server?.close();
   }
 }
+
+export { NutsAPIHandler } from './handler';
+export type { NutsRequest } from './worker';

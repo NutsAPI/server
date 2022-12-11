@@ -1,10 +1,9 @@
-import type { ApiRequestBase, ApiResponseBase } from '@nutsapi/types';
 import type { IncomingMessage } from 'http';
 import type { HttpCookie, HttpSetCookie } from './cookie';
 import { CachedProperty } from './util';
 
 
-export class NutsRequest<T extends ApiRequestBase, U extends ApiResponseBase> {
+export class NutsRequest<T, U extends Record<number, unknown>> {
   private properties: {
     userAgent: CachedProperty<string | undefined>,
     remoteAddress: CachedProperty<string | undefined>,
@@ -13,12 +12,12 @@ export class NutsRequest<T extends ApiRequestBase, U extends ApiResponseBase> {
 
   private response: {
     code: number;
-    payload: U[number]['_output']
+    payload: U[number]
   } | null = null;
   private cookie: string[] = [];
 
   constructor(
-    public body: T['_output'],
+    public body: T,
     public raw: IncomingMessage,
   ){
     this.properties = {
@@ -66,11 +65,11 @@ export class NutsRequest<T extends ApiRequestBase, U extends ApiResponseBase> {
   }
 
 
-  reply<Code extends number & (keyof U)>(code: Code, payload: U[Code]['_output']) {
+  reply<Code extends number & (keyof U)>(code: Code, payload: U[Code]) {
     this.response = { code, payload };
   }
 
-  static UNPACK<T extends ApiRequestBase, U extends ApiResponseBase>(v: NutsRequest<T, U>) {
+  static UNPACK<T, U extends Record<number, unknown>>(v: NutsRequest<T, U>) {
     return v.response == null ? null : {
       code: v.response.code,
       payload: v.response.payload,

@@ -16,7 +16,16 @@ export type WorkerType<
   T extends AllEndPoint<Schema>,
   U extends AllMethod<Schema, T>,
 > = 
-  (payload: NutsRequest<ExtractSchema<Schema, T, U>['request'], ExtractSchema<Schema, T, U>['response']>) => Promise<void>;
+  (
+    payload: NutsRequest<
+      ExtractSchema<Schema, T, U>['request']['_output'],
+      {
+        [S in (keyof ExtractSchema<Schema, T, U>['response']) & number]: {
+          S: ExtractSchema<Schema, T, U>['response'][S]['_output'] 
+        }
+      }
+    >
+  ) => Promise<void>;
 
 
 export type Handler<
