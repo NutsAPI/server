@@ -1,4 +1,4 @@
-import type { ApiSchemaBase, HttpRequestMethod, ApiRequestBase, ApiResponseBase } from '@nutsapi/types';
+import type { ApiSchemaBase, HttpRequestMethod, ApiRequestBase, ApiResponseBase, Conv, ConvChain } from '@nutsapi/types';
 import type { NutsRequest } from './worker';
 
 export type AllEndPoint<Schema extends ApiSchemaBase> = (keyof Schema & string);
@@ -13,15 +13,16 @@ export type ExtractSchema<
 
 export type WorkerType<
   Schema extends ApiSchemaBase,
+  Convs extends Conv[],
   T extends AllEndPoint<Schema>,
   U extends AllMethod<Schema, T>,
 > = 
   (
     payload: NutsRequest<
-      ExtractSchema<Schema, T, U>['request']['_output'],
+      ConvChain<ExtractSchema<Schema, T, U>['request']['_output'], Convs, 'payload', 'object'>,
       {
         [S in (keyof ExtractSchema<Schema, T, U>['response']) & number]:
-          ExtractSchema<Schema, T, U>['response'][S]['_output'] 
+          ConvChain<ExtractSchema<Schema, T, U>['response'][S]['_output'], Convs, 'payload', 'object'>
       }
     >
   ) => Promise<void>;
@@ -29,21 +30,22 @@ export type WorkerType<
 
 export type Handler<
   Schema extends ApiSchemaBase,
+  Convs extends Conv[],
   T extends AllEndPoint<Schema> = AllEndPoint<Schema>,
   U extends AllMethod<Schema, T> = AllMethod<Schema, T>,
 > = {
   endpoint: T,
   method: U,
-  worker: WorkerType<Schema, T, U>,
+  worker: WorkerType<Schema, Convs, T, U>,
 }
 
-export class NutsAPIHandler<Schema extends ApiSchemaBase> {
-  private handlers: Handler<Schema>[] = [];
+export class NutsAPIHandler<Schema extends ApiSchemaBase, Convs extends Conv[]> {
+  private handlers: Handler<Schema, Convs>[] = [];
   public handle<T extends AllEndPoint<Schema>, U extends AllMethod<Schema, T>>
-  (endpoint: T, method: U, handler: WorkerType<Schema, T, U>) {
+  (endpoint: T, method: U, handler: WorkerType<Schema, Convs, T, U>) {
     this.handlers.push({ endpoint, method, worker: handler });
   }
-  static UNPACK<Schema extends ApiSchemaBase>(handler: NutsAPIHandler<Schema>) {
+  static UNPACK<Schema extends ApiSchemaBase, Convs extends Conv[]>(handler: NutsAPIHandler<Schema, Convs>) {
     return handler.handlers;
   }
 }
