@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import type { ApiSchemaBase, HttpRequestMethod, ApiRequestBase, ApiResponseBase, Conv, ConvChain } from '@nutsapi/types';
 import type { NutsRequest } from './worker';
 
@@ -43,6 +44,7 @@ export class NutsAPIHandler<Schema extends ApiSchemaBase, Convs extends Conv[]> 
   private handlers: Handler<Schema, Convs>[] = [];
   public handle<T extends AllEndPoint<Schema>, U extends AllMethod<Schema, T>>
   (endpoint: T, method: U, handler: WorkerType<Schema, Convs, T, U>) {
+    //@ts-ignore
     this.handlers.push({ endpoint, method, worker: handler });
   }
   static UNPACK<Schema extends ApiSchemaBase, Convs extends Conv[]>(handler: NutsAPIHandler<Schema, Convs>) {
