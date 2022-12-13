@@ -1,4 +1,7 @@
-import type { ApiRequestBase, ApiResponseBase, ApiSchemaBase, HttpRequestMethod} from '@nutsapi/types';
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import type { ApiRequestBase, ApiResponseBase, ApiSchemaBase, Conv, ConvWorker, HttpRequestMethod} from '@nutsapi/types';
+import { convToPayload} from '@nutsapi/types';
+import { convToObject } from '@nutsapi/types';
 import { HTTP_REQUEST_METHODS } from '@nutsapi/types';
 import type { IncomingMessage, Server, ServerResponse } from 'http';
 import { createServer } from 'http';
@@ -18,9 +21,13 @@ interface CorsOption {
   credential: boolean,
 }
 
-export class NutsAPIServer<Schema extends ApiSchemaBase> {
+export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = []> {
   private endpoints: { endpoint: string, method: string, type: { request: ApiRequestBase, response: ApiResponseBase } }[];
-  constructor(public schema: Schema, public logger: NutsLogger = new NormalNutsLogger()) {
+  constructor(
+    public schema: Schema,
+    public converters: { [P in keyof Convs]: ConvWorker<Convs[P]> },
+    public logger: NutsLogger = new NormalNutsLogger(),
+  ) {
     this.endpoints = Object.entries(schema).flatMap(v => Object.entries(v[1]).map(e => ({ endpoint: v[0], method: e[0], type: e[1] })));
   }
 
@@ -31,19 +38,19 @@ export class NutsAPIServer<Schema extends ApiSchemaBase> {
     notImplemented: '501 Not Implemented',
   };
 
-  private listeningHanders: Handler<Schema>[] = [];
-  private handlers: Handler<Schema>[] = [];
-  private extHandlers: NutsAPIHandler<Schema>[] = [];
+  private listeningHanders: Handler<Schema, Convs>[] = [];
+  private handlers: Handler<Schema, Convs>[] = [];
+  private extHandlers: NutsAPIHandler<Schema, Convs>[] = [];
   private corsOptions: CorsOption[] = [];
 
   private server: Server | undefined = undefined;
 
   public handle<T extends AllEndPoint<Schema>, U extends AllMethod<Schema, T>>
-  (endpoint: T, method: U, handler: WorkerType<Schema, T, U>) {
+  (endpoint: T, method: U, handler: WorkerType<Schema, Convs, T, U>) {
     this.handlers.push({ endpoint, method, worker: handler });
   }
 
-  public withHandlers(handler: NutsAPIHandler<Schema>) {
+  public withHandlers(handler: NutsAPIHandler<Schema, Convs>) {
     this.extHandlers.push(handler);
   }
 
@@ -101,8 +108,9 @@ export class NutsAPIServer<Schema extends ApiSchemaBase> {
     const parsedPayload = schema.type.request.safeParse(payload);
     if(!parsedPayload.success) return this.responseError(400);
 
-    
-    const nutsRequest = new NutsRequest<unknown, never>(parsedPayload.data, req);
+    //@ts-ignore
+    const nutsRequest = new NutsRequest<unknown, never>(convToObject(parsedPayload.data, this.converters), req);
+    //@ts-ignore
     await handler.worker(nutsRequest);
 
     const response = NutsRequest.UNPACK(nutsRequest);
@@ -115,7 +123,8 @@ export class NutsAPIServer<Schema extends ApiSchemaBase> {
           'Content-Type': 'application/json',
           ...(response.cookie === null ? {} : { 'Set-Cookie': response.cookie }),
         },
-        payload: content,
+        //@ts-ignore
+        payload: convToPayload(content, this.converters),
       };
     } catch {
       return this.responseError(500);
