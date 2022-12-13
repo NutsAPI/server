@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-import type { ApiRequestBase, ApiResponseBase, ApiSchemaBase, Conv, ConvWorker, HttpRequestMethod} from '@nutsapi/types';
+import type { ApiRequestBase, ApiResponseBase, ApiSchemaBase, ConverterArray, ConvWorker, HttpRequestMethod} from '@nutsapi/types';
 import { convToPayload} from '@nutsapi/types';
 import { convToObject } from '@nutsapi/types';
 import { HTTP_REQUEST_METHODS } from '@nutsapi/types';
@@ -21,7 +20,7 @@ interface CorsOption {
   credential: boolean,
 }
 
-export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = []> {
+export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends ConverterArray = []> {
   private endpoints: { endpoint: string, method: string, type: { request: ApiRequestBase, response: ApiResponseBase } }[];
   constructor(
     public schema: Schema,
@@ -47,7 +46,6 @@ export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = 
 
   public handle<T extends AllEndPoint<Schema>, U extends AllMethod<Schema, T>>
   (endpoint: T, method: U, handler: WorkerType<Schema, Convs, T, U>) {
-    //@ts-ignore
     this.handlers.push({ endpoint, method, worker: handler });
   }
 
@@ -109,23 +107,20 @@ export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = 
     const parsedPayload = schema.type.request.safeParse(payload);
     if(!parsedPayload.success) return this.responseError(400);
 
-    //@ts-ignore
     const nutsRequest = new NutsRequest<unknown, never>(convToObject(parsedPayload.data, this.converters), req);
-    //@ts-ignore
-    await handler.worker(nutsRequest);
+    await handler.worker(nutsRequest as never);
 
     const response = NutsRequest.UNPACK(nutsRequest);
     if(response === null) return this.responseError(500);
     try{
-      const content = JSON.stringify(response.payload);
+      const content = JSON.stringify(convToPayload(response.payload, this.converters));
       return {
         code: response.code,
         headers: {
           'Content-Type': 'application/json',
           ...(response.cookie === null ? {} : { 'Set-Cookie': response.cookie }),
         },
-        //@ts-ignore
-        payload: convToPayload(content, this.converters),
+        payload: content,
       };
     } catch {
       return this.responseError(500);
