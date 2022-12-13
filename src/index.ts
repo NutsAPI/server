@@ -47,6 +47,7 @@ export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = 
 
   public handle<T extends AllEndPoint<Schema>, U extends AllMethod<Schema, T>>
   (endpoint: T, method: U, handler: WorkerType<Schema, Convs, T, U>) {
+    //@ts-ignore
     this.handlers.push({ endpoint, method, worker: handler });
   }
 
