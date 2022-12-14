@@ -16,7 +16,7 @@
     "./dist"
   ],
   "dependencies": {
-    "@nutsapi/types": "^1.4.1",
+    "@nutsapi/types": "^1.5.0",
     "zod": "^3.19.1"
   },
   "devDependencies": {
