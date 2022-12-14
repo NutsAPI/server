@@ -1,4 +1,4 @@
-import type { ApiSchemaBase, HttpRequestMethod, ApiRequestBase, ApiResponseBase, ConvChain, ConverterArray } from '@nutsapi/types';
+import type { ApiSchemaBase, HttpRequestMethod, ApiRequestBase, ApiResponseBase, ConvChain, Conv } from '@nutsapi/types';
 import type { NutsRequest } from './worker';
 
 export type AllEndPoint<Schema extends ApiSchemaBase> = (keyof Schema & string);
@@ -13,7 +13,7 @@ export type ExtractSchema<
 
 export type WorkerType<
   Schema extends ApiSchemaBase,
-  Convs extends ConverterArray,
+  Convs extends Conv[],
   T extends AllEndPoint<Schema>,
   U extends AllMethod<Schema, T>,
 > = 
@@ -30,7 +30,7 @@ export type WorkerType<
 
 export type Handler<
   Schema extends ApiSchemaBase,
-  Convs extends ConverterArray,
+  Convs extends Conv[],
   T extends AllEndPoint<Schema> = AllEndPoint<Schema>,
   U extends AllMethod<Schema, T> = AllMethod<Schema, T>,
 > = {
@@ -39,13 +39,13 @@ export type Handler<
   worker: WorkerType<Schema, Convs, T, U>,
 }
 
-export class NutsAPIHandler<Schema extends ApiSchemaBase, Convs extends ConverterArray> {
+export class NutsAPIHandler<Schema extends ApiSchemaBase, Convs extends Conv[]> {
   private handlers: Handler<Schema, Convs>[] = [];
   public handle<T extends AllEndPoint<Schema>, U extends AllMethod<Schema, T>>
   (endpoint: T, method: U, handler: WorkerType<Schema, Convs, T, U>) {
     this.handlers.push({ endpoint, method, worker: handler });
   }
-  static UNPACK<Schema extends ApiSchemaBase, Convs extends ConverterArray>(handler: NutsAPIHandler<Schema, Convs>) {
+  static UNPACK<Schema extends ApiSchemaBase, Convs extends Conv[]>(handler: NutsAPIHandler<Schema, Convs>) {
     return handler.handlers;
   }
 }

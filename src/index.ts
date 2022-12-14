@@ -1,4 +1,4 @@
-import type { ApiRequestBase, ApiResponseBase, ApiSchemaBase, ConverterArray, ConvWorker, HttpRequestMethod} from '@nutsapi/types';
+import type { ApiRequestBase, ApiResponseBase, ApiSchemaBase, Conv, ConvWorker, HttpRequestMethod} from '@nutsapi/types';
 import { convToPayload} from '@nutsapi/types';
 import { convToObject } from '@nutsapi/types';
 import { HTTP_REQUEST_METHODS } from '@nutsapi/types';
@@ -20,7 +20,7 @@ interface CorsOption {
   credential: boolean,
 }
 
-export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends ConverterArray = []> {
+export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = []> {
   private endpoints: { endpoint: string, method: string, type: { request: ApiRequestBase, response: ApiResponseBase } }[];
   constructor(
     public schema: Schema,
