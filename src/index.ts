@@ -147,7 +147,7 @@ export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = 
 
     const cors = origin !== undefined && option !== undefined ? {
       'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Headers': option.headers.join(', '),
+      'Access-Control-Allow-Headers': option.headers.length === 1 && option.headers[0] === '*' ? req.headers['access-control-request-headers'] : option.headers.join(', '),
       'Access-Control-Allow-Methods': option.methods.join(', '),
       ...(option.credential ? { 'Access-Control-Allow-Credentials': 'true' } : {}),
     } : {};
