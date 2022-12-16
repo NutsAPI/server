@@ -120,6 +120,7 @@ export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = 
         code: response.code,
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': response.cacheControl,
           ...(response.cookie === null ? {} : { 'Set-Cookie': response.cookie }),
         },
         payload: content,
