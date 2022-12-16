@@ -109,7 +109,13 @@ export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = 
     const parsedPayload = schema.type.request.safeParse(payload);
     if(!parsedPayload.success) return this.responseError(400);
 
-    const nutsRequest = new NutsRequest<unknown, never>(convToObject(parsedPayload.data, this.converters), req);
+    let obj;
+    try {
+      obj = convToObject(parsedPayload.data, this.converters);
+    } catch {
+      return this.responseError(400);
+    }
+    const nutsRequest = new NutsRequest<unknown, never>(obj, req);
     await handler.worker(nutsRequest as never);
 
     const response = NutsRequest.UNPACK(nutsRequest);
