@@ -20,6 +20,8 @@ interface CorsOption {
   credential: boolean,
 }
 
+const contentTypeAcceptable = (contentType: string | undefined) => contentType !== undefined && contentType.split(';')[0].toLowerCase() === 'application/json';
+
 export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = []> {
   private endpoints: { endpoint: string, method: string, type: { request: ApiRequestBase, response: ApiResponseBase } }[];
   constructor(
@@ -70,11 +72,11 @@ export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = 
 
     if(url === undefined) return this.responseError(500);
 
-    if(req.method === 'GET' || (req.headers['content-type'] !== 'application/json' && req.method === 'DELETE')) {
+    if(req.method === 'GET' || (!contentTypeAcceptable(req.headers['content-type']) && req.method === 'DELETE')) {
       return this.handleEndPoint(req.method, url.pathname ?? '/', url.query, req);
     }
 
-    if(req.headers['content-type'] !== 'application/json') return this.responseError(400);
+    if(!contentTypeAcceptable(req.headers['content-type'])) return this.responseError(400);
 
     return new Promise(resolve => {
       const body: Uint8Array[] = [];
@@ -117,7 +119,7 @@ export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = 
       return {
         code: response.code,
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
           ...(response.cookie === null ? {} : { 'Set-Cookie': response.cookie }),
         },
         payload: content,
@@ -147,7 +149,7 @@ export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = 
 
     const cors = origin !== undefined && option !== undefined ? {
       'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Headers': option.headers.join(', '),
+      'Access-Control-Allow-Headers': option.headers.length === 1 && option.headers[0] === '*' ? req.headers['access-control-request-headers'] : option.headers.join(', '),
       'Access-Control-Allow-Methods': option.methods.join(', '),
       ...(option.credential ? { 'Access-Control-Allow-Credentials': 'true' } : {}),
     } : {};
