@@ -16,6 +16,7 @@ export class NutsRequest<T, U extends Record<number, unknown>> {
     payload: U[number]
   } | null = null;
   private cookie: string[] = [];
+  private cacheControl = 'no-store';
 
   constructor(
     public body: T,
@@ -61,6 +62,9 @@ export class NutsRequest<T, U extends Record<number, unknown>> {
     );
   }
 
+  setCacheControl(cacheControl: string) {
+    this.cacheControl = cacheControl;
+  }
 
   reply<Code extends number & (keyof U)>(code: Code, payload: U[Code]) {
     this.response = { code, payload };
@@ -71,6 +75,7 @@ export class NutsRequest<T, U extends Record<number, unknown>> {
       code: v.response.code,
       payload: v.response.payload,
       cookie: v.cookie.length > 0 ? v.cookie : null,
+      cacheControl: v.cacheControl,
     };
   }
 }
