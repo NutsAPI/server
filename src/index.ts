@@ -73,7 +73,15 @@ export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = 
     if(url === undefined) return this.responseError(500);
 
     if(req.method === 'GET' || (!contentTypeAcceptable(req.headers['content-type']) && req.method === 'DELETE')) {
-      return this.handleEndPoint(req.method, url.pathname ?? '/', url.query, req);
+      const encodedUrlPayload = url.query.payload;
+      if(encodedUrlPayload === undefined || Array.isArray(encodedUrlPayload)) return this.responseError(400);
+      const rawPayload = Buffer.from(encodedUrlPayload, 'base64url').toString();
+      try {
+        const payload = JSON.parse(rawPayload);
+        return this.handleEndPoint(req.method, url.pathname ?? '/', payload, req);
+      } catch {
+        return this.responseError(400);
+      }
     }
 
     if(!contentTypeAcceptable(req.headers['content-type'])) return this.responseError(400);
