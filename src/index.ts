@@ -75,7 +75,7 @@ export class NutsAPIServer<Schema extends ApiSchemaBase, Convs extends Conv[] = 
     if(req.method === 'GET' || (!contentTypeAcceptable(req.headers['content-type']) && req.method === 'DELETE')) {
       const encodedUrlPayload = url.query.payload;
       if(encodedUrlPayload === undefined || Array.isArray(encodedUrlPayload)) return this.responseError(400);
-      const rawPayload = Buffer.from(encodedUrlPayload, 'base64url').toString();
+      const rawPayload = decodeURIComponent(Buffer.from(encodedUrlPayload, 'base64url').toString());
       try {
         const payload = JSON.parse(rawPayload);
         return this.handleEndPoint(req.method, url.pathname ?? '/', payload, req);
