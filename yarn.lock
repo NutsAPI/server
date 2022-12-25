@@ -200,10 +200,10 @@
     "@typescript-eslint/eslint-plugin" "^5.38.1"
     "@typescript-eslint/parser" "^5.38.1"
 
-"@nutsapi/types@^1.5.0":
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/@nutsapi/types/-/types-1.6.0.tgz#e2e5fe5fb9508706cfd9cea0266c4d17d80e6a3c"
-  integrity sha512-BdKcmTJMAR5MVyASCWC7s/impmwl1MiwpP/G48GlOcnFBXy6d2x29S0+a46vGOeTZk6B0tCp1LwvF6IAbrNsqA==
+"@nutsapi/types@^1.6.1":
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/@nutsapi/types/-/types-1.6.1.tgz#3725770ebd4ef6872aec3b39b113c630d0d13694"
+  integrity sha512-yKIhopXOEkx1X9ADHWdjfqQPvIt1nQByQC/9wIcKMZjdZp26TaM9a6tim92H24gnpZnZk9YYSqqfVwa4Ggc9AQ==
 
 "@tsconfig/node10@^1.0.7":
   version "1.0.9"
