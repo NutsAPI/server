@@ -479,12 +479,12 @@ doctrine@^3.0.0:
   dependencies:
     esutils "^2.0.2"
 
-dts-bundle-generator@^7.1.0:
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/dts-bundle-generator/-/dts-bundle-generator-7.1.0.tgz#c8ea803c62654dbfc6618da9226f022c54d93de2"
-  integrity sha512-RDm/HY6722PVWG3m+ZwLvD1TF9hNbDHoKeYwx1WmDo2So1eh4eRH2HTqxAmBiK0uQj7IogtxO6fyezQw3E793Q==
+dts-bundle-generator@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/dts-bundle-generator/-/dts-bundle-generator-9.0.0.tgz#b26a4d52409a4f30c8f9fdfa3f59f6522c749acd"
+  integrity sha512-4XPDOb+F1fkPrvqFL4hnNW2Edc3uiFxQDsK8gUMP8/45+QkA+dSOH0ZWZCKXEjA3ITVbPGV1li8oP8JE4Z/Y0g==
   dependencies:
-    typescript ">=4.5.2"
+    typescript ">=5.0.2"
     yargs "^17.6.0"
 
 emoji-regex@^8.0.0:
@@ -1152,7 +1152,12 @@ type-fest@^0.20.2:
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-0.20.2.tgz#1bf207f4b28f91583666cb5fbd327887301cd5f4"
   integrity sha512-Ne+eE4r0/iWnpAxD852z3A+N0Bt5RN//NjJwRd2VFHEmrywxf5vsZlh4R6lixl6B+wz/8d+maTSAkN1FIkI3LQ==
 
-typescript@>=4.5.2, typescript@^4.9.4:
+typescript@>=5.0.2:
+  version "5.3.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.3.2.tgz#00d1c7c1c46928c5845c1ee8d0cc2791031d4c43"
+  integrity sha512-6l+RyNy7oAHDfxC4FzSJcz9vnjTKxrLpDG5M2Vu4SHRVNg6xzqZp6LYSR9zjqQTu8DU/f5xwxUdADOkbrIX2gQ==
+
+typescript@^4.9.4:
   version "4.9.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.9.4.tgz#a2a3d2756c079abda241d75f149df9d561091e78"
   integrity sha512-Uz+dTXYzxXXbsFpM86Wh3dKCxrQqUcVMxwU54orwlJjOpO3ao8L7j5lH+dWfTwgCwIuM9GQ2kvVotzYJMXTBZg==
